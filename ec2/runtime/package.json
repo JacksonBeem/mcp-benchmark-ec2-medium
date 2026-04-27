@@ -1,0 +1,16 @@
+{
+  "name": "mcp-benchmark-ec2-medium-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
