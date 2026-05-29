@@ -11,11 +11,11 @@ cd "${SERVERS_DIR}"
 checkout_pinned_commit() {
   local name="$1"; local commit="$2"
   [ -z "$commit" ] && return
-  git -C "$name" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return
+  git -C "$name" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
   local current; current="$(git -C "$name" rev-parse HEAD)"
   [ "$current" = "$commit" ] && return
-  if [ -n "$(git -C "$name" status --porcelain)" ]; then
-    echo "ERROR: $name not at pinned commit $commit and has local changes."; exit 1
+  if [ -n "$(git -C "$name" status --porcelain --untracked-files=no)" ]; then
+    echo "ERROR: $name not at pinned commit $commit and has tracked local changes."; exit 1
   fi
   echo "INFO: checkout pinned $name ($commit)"
   git -C "$name" fetch --tags --force origin "$commit" >/dev/null 2>&1 || git -C "$name" fetch --tags --force origin
@@ -27,7 +27,7 @@ is_git_checkout() { git -C "$1" rev-parse --is-inside-work-tree >/dev/null 2>&1;
 sync_adapter() {
   local name="$1"
   local source_path="${ADAPTERS_DIR}/${name}/stdio-adapter.mjs"
-  [ -f "${source_path}" ] || return
+  [ -f "${source_path}" ] || return 0
   cp "${source_path}" "${SERVERS_DIR}/${name}/stdio-adapter.mjs"
   chmod +x "${SERVERS_DIR}/${name}/stdio-adapter.mjs" 2>/dev/null || true
   echo "INFO: synced adapter for ${name}"
