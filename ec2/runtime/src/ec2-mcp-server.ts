@@ -25,7 +25,9 @@ type RouteConfigMap = Record<string, ServerConfig[]>;
 const PORT = Number.parseInt(process.env.PORT ?? "3000", 10);
 const TOOL_NAME_SEPARATOR = "__";
 const INSTANCE_ID = randomUUID().slice(0, 8);
+const EC2_METADATA_BASE_URL = "http://169.254.169.254/latest";
 const bridges = new Map<string, StdioBridge>();
+let cachedEc2InstanceType: string | null | undefined;
 
 function normalizeRouteKey(routeKey: string | undefined | null): string {
   const normalized = String(routeKey ?? "").trim().replace(/^\/+|\/+$/g, "");
@@ -140,6 +142,48 @@ function bytesToMb(bytes: number | null | undefined): number | null {
     return null;
   }
   return Math.round((bytes / 1024 / 1024) * 100) / 100;
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = 200): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchEc2Metadata(pathValue: string): Promise<string | null> {
+  try {
+    const tokenResponse = await fetchWithTimeout(`${EC2_METADATA_BASE_URL}/api/token`, {
+      method: "PUT",
+      headers: { "X-aws-ec2-metadata-token-ttl-seconds": "60" },
+    });
+    if (!tokenResponse.ok) {
+      return null;
+    }
+    const token = (await tokenResponse.text()).trim();
+    const metadataResponse = await fetchWithTimeout(`${EC2_METADATA_BASE_URL}/meta-data/${pathValue}`, {
+      headers: { "X-aws-ec2-metadata-token": token },
+    });
+    if (!metadataResponse.ok) {
+      return null;
+    }
+    const value = (await metadataResponse.text()).trim();
+    return value || null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveEc2InstanceType(): Promise<string | null> {
+  if (cachedEc2InstanceType !== undefined) {
+    return cachedEc2InstanceType;
+  }
+  cachedEc2InstanceType =
+    process.env.EC2_INSTANCE_TYPE?.trim() || process.env.AWS_EC2_INSTANCE_TYPE?.trim() || (await fetchEc2Metadata("instance-type"));
+  return cachedEc2InstanceType;
 }
 
 function readLinuxRssBytes(pid: number | null): number | null {
@@ -425,11 +469,15 @@ fastify.get("/metrics", async (_request, reply) => {
   const systemTotalBytes = totalmem();
   const systemFreeBytes = freemem();
   const systemUsedBytes = systemTotalBytes - systemFreeBytes;
+  const ec2InstanceType = await resolveEc2InstanceType();
 
   return reply.header("Cache-Control", "no-store").send({
     status: "ok",
     instance: INSTANCE_ID,
     timestamp: new Date().toISOString(),
+    ec2: {
+      instance_type: ec2InstanceType,
+    },
     runtime: {
       pid: process.pid,
       rss_bytes: runtimeMemory.rss,

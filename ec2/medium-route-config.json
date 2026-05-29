@@ -1,44 +1,44 @@
 {
   "medium": [
     {
-      "name": "bibliomantic-mcp-server",
-      "command": "node servers/bibliomantic-mcp-server/stdio-adapter.mjs"
+      "name": "mcp-osint-server",
+      "command": "node servers/mcp-osint-server/stdio-adapter.mjs"
     },
     {
-      "name": "car-price-mcp-main",
-      "command": "node servers/car-price-mcp-main/stdio-adapter.mjs"
+      "name": "mcp-hn",
+      "command": "node servers/mcp-hn/stdio-adapter.mjs"
+    },
+    {
+      "name": "biomcp",
+      "command": "node servers/biomcp/stdio-adapter.mjs"
+    },
+    {
+      "name": "mcp-nixos",
+      "command": "node servers/mcp-nixos/stdio-adapter.mjs"
     },
     {
       "name": "game-trends-mcp",
       "command": "node servers/game-trends-mcp/stdio-adapter.mjs"
     },
     {
-      "name": "metmuseum-mcp",
-      "command": "node servers/metmuseum-mcp/dist/index.js"
+      "name": "wikipedia-mcp",
+      "command": "node servers/wikipedia-mcp/stdio-adapter.mjs"
     },
     {
-      "name": "mcp-server-nationalparks",
-      "command": "node servers/mcp-server-nationalparks/build/index.js"
+      "name": "math-mcp",
+      "command": "node servers/math-mcp/build/index.js"
     },
     {
-      "name": "openapi-mcp-server",
-      "command": "node servers/openapi-mcp-server/stdio-adapter.mjs"
+      "name": "okx-mcp",
+      "command": "node servers/okx-mcp/build/index.js"
     },
     {
-      "name": "weather_mcp",
-      "command": "node servers/weather_mcp/stdio-adapter.mjs"
+      "name": "car-price-mcp-main",
+      "command": "node servers/car-price-mcp-main/stdio-adapter.mjs"
     },
     {
-      "name": "mcp-osint-server",
-      "command": "node servers/mcp-osint-server/stdio-adapter.mjs"
-    },
-    {
-      "name": "context7",
-      "command": "node servers/context7/packages/mcp/dist/index.js"
-    },
-    {
-      "name": "steam-mcp",
-      "command": "node servers/steam-mcp/build/index.js"
+      "name": "osm-mcp",
+      "command": "node servers/osm-mcp/index.js"
     }
   ]
 }
